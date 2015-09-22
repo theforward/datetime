@@ -13,7 +13,8 @@
 				timer: 'div.timer'
 			},
 			selector = $('<div class="selector"><code class="current">0:00</code><span class="current"></span></div>'),
-			minute = 100 / (24 * 60);
+			minute = 100 / (24 * 60),
+			offset = dates.closest('.field').find('input').data('offset');
 
 		$.extend(settings, custom_settings);
 
@@ -42,7 +43,7 @@
 			else {
 				
 				// Visualise time
-				visualise(timer, range);		
+				visualise(timer, range, true);		
 
 				// Position timer
 				if(times.filter(':eq(0)').is(':hidden')) {
@@ -74,7 +75,7 @@
 			// Set time
 			date.setHours(selected.hours);
 			date.setMinutes(selected.minutes);
-			time = formatTime(date.getTime());
+			time = formatTime(date.getTime(),false);
 			selector.find('code').text(time.time);
 			
 			// Show selector
@@ -102,7 +103,15 @@
 			var end = timeline.parent().find('div.timeline.end'),
 				current = timeline.parent().data('range'),
 				selected = getTime(timeline, position);
-				
+			
+			// need to reverse the timezone as it would apply it twice
+			var date = new Date();
+			selected.hours -= ( date.getTimezoneOffset() + offset ) / 60 ;
+
+			// using a new variable due to the offset issue
+			var currentFrom = current.from;
+			currentFrom.hours -= ( date.getTimezoneOffset() + offset ) / 60 ;
+
 			// Adjust time later than 23:59
 			if(selected.hours > 23) {
 				selected = {
@@ -123,18 +132,18 @@
 					}
 					
 					// Range on single day, new start
-					else if((current.from.hours * 100 + current.from.minutes) > (selected.hours * 100 + selected.minutes)) {
+					else if((currentFrom.hours * 100 + currentFrom.minutes) > (selected.hours * 100 + selected.minutes)) {
 	
 						// Handle ranges that are created from a single day
 						if(current.to == null) {
-							current.to = current.from;
+							current.to = currentFrom;
 						}
 						timeline.parents(settings.item).trigger('settime', [selected, current.to, 'single', 'start']);
 					}
 					
 					// Range on single day, new end
 					else {
-						timeline.parents(settings.item).trigger('settime', [current.from, selected, 'single', 'start']);
+						timeline.parents(settings.item).trigger('settime', [currentFrom, selected, 'single', 'start']);
 					}
 				}
 				
@@ -142,7 +151,7 @@
 				else {
 				
 					// Range over multiple days, new end date
-					timeline.parents(settings.item).trigger('settime', [current.from, selected, 'multiple', 'end']);
+					timeline.parents(settings.item).trigger('settime', [currentFrom, selected, 'multiple', 'end']);
 				}
 			}
 			
@@ -162,7 +171,9 @@
 		};
 	
 		// Visualise time
-		var visualise = function(timer, range) {
+		var visualise = function(timer, range, withOffset) {
+			withOffset = withOffset !== false;
+
 			var labels = timer.find('code:not(.current)'),
 				start = labels.filter(':eq(0)'),
 				end = labels.filter(':eq(1)'),
@@ -176,16 +187,16 @@
 			
 			// Start time
 			if(range.start == '') {
-				from = formatTime(range.end);
+				from = formatTime(range.end, withOffset);
 				range.end = '';
 			}
 			else {
-				from = formatTime(range.start);
+				from = formatTime(range.start, withOffset);
 			}
 			
 			// End time
 			if(range.end != '') {
-				to = formatTime(range.end);
+				to = formatTime(range.end, withOffset);
 			}
 			
 			// Range on single day
@@ -353,9 +364,16 @@
 		};
 					
 		// Format time
-		var formatTime = function(time) {
-			var date = new Date(parseInt(time)),
-				hours = date.getHours(),
+		var formatTime = function(time,withOffset) {
+			withOffset = withOffset !== false;
+			var date = new Date(parseInt(time));
+
+			//adjust offset 
+			if (withOffset){
+				date =  new Date(parseInt(time) + ( date.getTimezoneOffset() + offset ) * 60 * 1000);
+			}
+
+			var	hours = date.getHours(),
 				minutes = date.getMinutes(),
 				devider = ':';
 				
