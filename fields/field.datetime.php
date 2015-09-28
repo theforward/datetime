@@ -85,7 +85,7 @@
 		 * @return XMLElement
 		 *  returns a date element
 		 */
-		public static function createDate($element, $start=NULL, $end=NULL, $class=NULL, $prepopulate=1, $time=1) {
+		public static function createDate($element, $start=NULL, $end=NULL, $class=NULL, $prepopulate=1, $time=1, $defaultTime="12:00") {
 			$classes = array();
 
 			// This is hacky: remove empty end dates
@@ -116,8 +116,8 @@
 				'li',
 				'<header>
 					<div>' .
-						self::__createDateField($element, 'start', $start, $time, $prepopulate) .
-						self::__createDateField($element, 'end', $end, $time) .
+						self::__createDateField($element, 'start', $start, $time, $prepopulate, $defaultTime) .
+						self::__createDateField($element, 'end', $end, $time, 0, $defaultTime) .
 				'	</div>
 				</header>
 				<div class="dt-calendar content">' .
@@ -144,10 +144,15 @@
 		 * @return string
 		 *  returns an input field as string
 		 */
-		private static function __createDateField($element, $type, $date, $time, $prepopulate=0) {
+		private static function __createDateField($element, $type, $date, $time, $prepopulate=0, $defaultTime="12:00") {
 
 			// Parse date
 			if(isset($date) || $prepopulate) {
+
+				if ( $prepopulate && !$date){
+					$date = strtotime ( $defaultTime );
+				}
+
 				$parsed = Calendar::formatDate($date, $time);
 
 				// Generate field
@@ -160,7 +165,7 @@
 			$offset = $offset->getOffset() / 60; // offset in minutes
 
 			// Generate field
-			return '<input type="text" name="fields[' . $element . '][' . $type . '][]" value="' . $parsed['date'] . '" data-offset="' . $offset . '" data-timestamp="' . $parsed['timestamp'] . '" class="' . $type . ' ' . $class . '" autocomplete="off" /><em class="' . $type . ' label"></em>';
+			return '<input type="text" name="fields[' . $element . '][' . $type . '][]" value="' . $parsed['date'] . '" data-offset="' . $offset . '" data-default-time="' . $defaultTime . '" data-timestamp="' . $parsed['timestamp'] . '" class="' . $type . ' ' . $class . '" autocomplete="off" /><em class="' . $type . ' label"></em>';
 		}
 
 		private static function __createCalendar() {
@@ -498,7 +503,7 @@
 
 				for($i = 0; $i < count($data['start']); $i++) {
 					$list->appendChild(
-						self::createDate($this->get('element_name'), $data['start'][$i], $data['end'][$i], NULL, $this->get('prepopulate'), $this->get('time'))
+						self::createDate($this->get('element_name'), $data['start'][$i], $data['end'][$i], NULL, $this->get('prepopulate'), $this->get('time'), $this->get('default-time'))
 					);
 				}
 			}
@@ -506,13 +511,13 @@
 			// Current date and time
 			elseif((int)$this->get('prepopulate') === 1 || (int)$this->get('multiple') === 0) {
 				$list->appendChild(
-					self::createDate($this->get('element_name'), NULL, NULL, NULL, $this->get('prepopulate'), $this->get('time'))
+					self::createDate($this->get('element_name'), NULL, NULL, NULL, $this->get('prepopulate'), $this->get('time'), $this->get('default-time'))
 				);
 			}
 
 			// Add template
 			if((int)$this->get('multiple') === 1) {
-				$template = self::createDate($this->get('element_name'), NULL, NULL, 'template', $this->get('prepopulate'), $this->get('time'));
+				$template = self::createDate($this->get('element_name'), NULL, NULL, 'template', $this->get('prepopulate'), $this->get('time'), $this->get('default-time'));
 				$template->setAttribute('data-name', 'datetime');
 				$template->setAttribute('data-type', 'datetime');
 				$list->appendChild($template);

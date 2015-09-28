@@ -270,7 +270,8 @@
 						url: Symphony.Context.get('root') + '/symphony/extension/datetime/get/',
 						data: { 
 							date: date,
-							time: Math.min(calendar.find('.timeline').size(), 1)
+							time: Math.min(calendar.find('.timeline').size(), 1),
+							'default-time':  input.attr('data-default-time')
 						},
 						success: function(parsed) {
 						

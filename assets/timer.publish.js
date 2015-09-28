@@ -201,6 +201,9 @@
 			
 			// Range on single day
 			if(Symphony.DateTime.reduce(range.start) == Symphony.DateTime.reduce(range.end)) {
+				var date = new Date();
+				var hours = 12 - ( date.getTimezoneOffset() + offset ) / 60 ;
+
 				start.text(formatRange(from, to));
 				end.text('12:00');	
 				
@@ -210,7 +213,7 @@
 					hours: 0,
 					minutes: 0
 				}, {
-					hours: 12,
+					hours: hours,
 					minutes: 0
 				});
 				
@@ -226,6 +229,9 @@
 			
 			// Single day
 			else if(range.end == '') {
+				var date = new Date();
+				var hours = 12 - ( date.getTimezoneOffset() + offset ) / 60 ;
+
 				start.text(from.time);
 				end.text('12:00');
 							
@@ -235,7 +241,7 @@
 					hours: 0,
 					minutes: 0
 				}, {
-					hours: 12,
+					hours: hours,
 					minutes: 0
 				});	
 				

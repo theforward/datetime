@@ -104,6 +104,7 @@
 					`id` int(11) unsigned NOT NULL auto_increment,
 					`field_id` int(11) unsigned NOT NULL,
 					`prepopulate` tinyint(1) DEFAULT '1',
+					`default-time` varchar(5) DEFAULT NULL,
 					`time` tinyint(1) DEFAULT '1',
 					`multiple` tinyint(1) DEFAULT '1',
 					`range` tinyint(1) DEFAULT '1',
@@ -220,6 +221,15 @@
 				if(!empty($does_stage_exist)) {
 					Symphony::Database()->query("DELETE FROM `tbl_fields_stage` WHERE `context` = 'datetime'");
 					Symphony::Database()->query("DELETE FROM `tbl_fields_stage_sorting` WHERE `context` = 'datetime'");
+				}
+			}
+			// Prior version 3.0
+			if(version_compare($previousVersion, '3.6', '<')) {
+
+				if(!in_array('default-time', $columns)) {
+					$status[] = Symphony::Database()->query(
+						"ALTER TABLE `tbl_fields_datetime` ADD `default-time` varchar(5) DEFAULT NULL"
+					);
 				}
 			}
 

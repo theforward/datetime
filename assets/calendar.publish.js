@@ -52,7 +52,12 @@
 				Symphony.Language.get('April'), 
 				Symphony.Language.get('May'), 
 				Symphony.Language.get('June'), 
-			];
+			],
+			defaultTime = dates.closest('.field').find('input').data('default-time'),
+			offset = dates.closest('.field').find('input').data('offset'),
+			date = new Date(),
+			defaultHour = defaultTime.split(':')[0] - ( date.getTimezoneOffset() + offset ) / 60 ,
+			defaultMinute = defaultTime.split(':')[1];
 
 		$.extend(settings, custom_settings);
 
@@ -163,8 +168,8 @@
 			};
 			
 			// Today
-			now.setHours(12);
-			now.setMinutes(0);
+			now.setHours(defaultHour);
+			now.setMinutes(defaultMinute);
 			today = {
 				time: now.getTime(),
 				year: now.getFullYear(),
@@ -233,7 +238,7 @@
 			// Set calendar days
 			calendar.find('tbody td').removeClass().each(function() {
 				var cell = $(this),
-					date = new Date(year, month, day, 12, 0),
+					date = new Date(year, month, day, defaultHour, defaultMinute),
 					time = date.getTime(),
 					days = Symphony.DateTime.reduce(time);
 				
