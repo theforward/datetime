@@ -36,7 +36,7 @@
 	-------------------------------------------------------------------------*/
 
 		function canPrePopulate() {
-			return false;
+			return true;
 		}
 
 		/**
@@ -546,6 +546,31 @@
 
 		function processRawFieldData($data, &$status, &$message=null, $simulate=false, $entry_id=null) {
 			$status = self::__OK__;
+
+			if ($simulate && is_string($data)){
+
+				$modes = (object)$this->getImportModes();
+
+				$range = $data;
+
+				$mode = $this->__getModeFromString($range);
+				$result = self::parseFilter($range);
+
+				if($result !== FieldDate::ERROR && !empty($range)) {
+					$range['mode'] = $mode;
+					$dates[] = $range;
+				}
+
+				$data = array(
+						'start' => array(
+								$range['start']
+							),
+						'end' => array(
+								$range['end']
+							)
+					);
+			}
+
 			if(!is_array($data)) return NULL;
 
 			// Clean up dates
